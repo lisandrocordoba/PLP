@@ -1,5 +1,9 @@
 import Prelude hiding (subtract)
 import Distribution.Simple.Flag (BooleanFlag)
+
+----------------- FALTA EL 4) PERMUTACIONES ---------------------
+----------------- FALTA EL 5) ENTRELAZAR ---------------------
+
 -- Ejercicio 1
 
 max2 :: (Float, Float) -> Float
@@ -100,8 +104,8 @@ Que tengo que hacer con el 1?
         [[1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1]]
 
 --}
-permutaciones :: [a] -> [[a]]
-permutaciones = foldr (\head rec -> concatMap (\perm -> (x : xs) ++ ((take 1 xs) : x : (drop 1 xs)) ++ (xs ++ [x])) rec) [] 
+--permutaciones :: [a] -> [[a]]
+--permutaciones = foldr (\head rec -> concatMap (\(x:xs) -> (x : xs) ++ ((take 1 xs) : x : (drop 1 xs)) ++ (xs ++ [x])) rec) [[]] 
 
 {--
 concatMap :: (a -> [b]) -> [a] -> [b]
@@ -116,3 +120,56 @@ devuelve la lista a partir del (i+1)esimo elemento
 
 --}
 
+---- II)
+---- III)
+---- IV)
+
+-- Ejercicio 5
+---- I)
+elementosEnPosicionesPares :: [a] -> [a]
+elementosEnPosicionesPares [] = []
+elementosEnPosicionesPares (x:xs) = if null xs 
+                                        then [x]
+                                        else x : elementosEnPosicionesPares (tail xs)
+
+-- No es recursion estructural pues utiliza el valor de XS, y solo se puede utilizar la recursion de XS
+
+---- II)
+entrelazar :: [a] -> [a] -> [a]
+entrelazar [] = id
+entrelazar (x:xs) = \ys -> if null ys
+                            then x : entrelazar xs []
+                            else x : head ys : entrelazar xs (tail ys)
+
+-- Es recursion estructural, pues solo utiliza X y la recursion de XS
+{--
+entrelazar' :: [a] -> [a] -> [a]
+entrelazar' xs = foldr (\x rec -> (\ys -> if null ys
+                                            then x : rec
+                                            else x : head ys : rec)) id                            
+--}
+-- Ejercicio 6
+recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
+recr _ z [] = z
+recr f z (x : xs) = f x xs (recr f z xs)
+
+-- a)
+sacarUna :: Eq a => a -> [a] -> [a]
+sacarUna e = recr (\x xs rec -> if e == x
+                                then xs
+                                else x : rec) []
+                                
+-- b) foldr no es adecuado para sacarUna pues con recursion estructural no podria acceder a xs.
+-- lo que podria hacer es otra funcion sacarTodas
+
+-- c) 
+insertarOrdenado :: Ord a => a -> [a] -> [a]
+insertarOrdenado e = recr (\x xs rec -> f e x xs rec) []
+                    where f e x xs rec  | e > x && (not (null xs)) = x : rec
+                                        | e > x = x : [e]
+                                        | otherwise = e : x : xs
+
+-- Ejercicio 7
+
+
+-- Ejercicio 8
