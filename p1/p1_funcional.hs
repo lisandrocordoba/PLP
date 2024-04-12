@@ -104,9 +104,12 @@ Que tengo que hacer con el 1?
         [[1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1]]
 
 --}
---permutaciones :: [a] -> [[a]]
---permutaciones = foldr (\head rec -> concatMap (\(x:xs) -> (x : xs) ++ ((take 1 xs) : x : (drop 1 xs)) ++ (xs ++ [x])) rec) [[]] 
+permutaciones :: [a] -> [[a]]
+permutaciones = foldr (\x rec -> concatMap (\headPerm -> (x : headPerm) ++ (take 1 headPerm ++ [x] ++ drop 2 headPerm) ++ take 2 headPerm : [x]) rec) [] 
 
+
+-- permutaciones [1,2,3]
+-- = [[1,2,3], [2,1,3], [2,3,1], [1,3,2], [3,1,2], [3,2,1]]
 {--
 concatMap :: (a -> [b]) -> [a] -> [b]
 por cada elemento de la lista, genera otra lista con la funcion
@@ -142,12 +145,12 @@ entrelazar (x:xs) = \ys -> if null ys
                             else x : head ys : entrelazar xs (tail ys)
 
 -- Es recursion estructural, pues solo utiliza X y la recursion de XS
-{--
+
 entrelazar' :: [a] -> [a] -> [a]
 entrelazar' xs = foldr (\x rec -> (\ys -> if null ys
                                             then x : rec
-                                            else x : head ys : rec)) id                            
---}
+                                            else x : head ys : rec)) const []                            
+
 -- Ejercicio 6
 recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
 recr _ z [] = z
