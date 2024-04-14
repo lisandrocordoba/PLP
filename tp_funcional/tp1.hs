@@ -125,21 +125,21 @@ foldObjeto fObjeto fTomado fEsDestruido objeto = case objeto of
 posición_personaje :: Personaje -> Posicion
 posición_personaje = foldPersonaje (flip (const id)) (\pos dir -> siguiente_posicion pos dir) id
 
-nombre_objeto :: 
-nombre_objeto = ?
+nombre_objeto :: Objeto -> Posicion
+nombre_objeto = foldObjeto (const id) const id
 
 {-Ejercicio 3-}
 
-objetos_en :: ?
-objetos_en = ?
+objetos_en :: Universo -> [Objeto]
+objetos_en u = map objeto_de (filter es_un_objeto u)
 
-personajes_en :: ?
-personajes_en = ?
+personajes_en :: Universo -> [Personaje]
+personajes_en u = map personaje_de (filter es_un_personaje u)
 
 {-Ejercicio 4-}
 
-objetos_en_posesión_de :: ?
-objetos_en_posesión_de = ?
+objetos_en_posesión_de :: String -> Universo -> [Objeto]
+objetos_en_posesión_de nom u = filter (en_posesion_de (personaje_de_nombre nom u))
 
 {-Ejercicio 5-}
 
