@@ -1,7 +1,10 @@
 {-- Tipos --}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use camelCase" #-}
 
-import Data.Either ()
-import Data.List ()
+import Data.Either
+import Data.List
+import Text.XHtml (h1)
 
 data Dirección = Norte | Sur | Este | Oeste
   deriving (Eq, Show)
@@ -17,7 +20,7 @@ data Objeto = Objeto Posición String        -- posición inicial, nombre
   deriving (Eq, Show)
 type Universo = [Either Personaje Objeto]
 
-{-- Observadores y funciones básicas de los tipos 
+--Observadores y funciones básicas de los tipos 
 
 siguiente_posición :: Posición -> Dirección -> Posición
 siguiente_posición p Norte = (fst p, snd p + 1)
@@ -30,7 +33,7 @@ posición (Left p) = posición_personaje p
 posición (Right o) = posición_objeto o
 
 posición_objeto :: Objeto -> Posición
-posición_objeto = foldObjeto const (const posición_personaje) id -}
+posición_objeto = foldObjeto const (const posición_personaje) id
 
 nombre :: Either Personaje Objeto -> String
 nombre (Left p) = nombre_personaje p
@@ -43,9 +46,9 @@ está_vivo :: Personaje -> Bool
 está_vivo = foldPersonaje (const (const True)) (const (const True)) (const False)
 
 fue_destruido :: Objeto -> Bool
-fue_destruido = foldObjeto (const (const False)) const (const True) 
+fue_destruido = foldObjeto (const (const False)) const (const True)
 
-{--
+
 universo_con :: [Personaje] -> [Objeto] -> [Either Personaje Objeto]
 universo_con ps os = map Left ps ++ map Right os
 
@@ -101,7 +104,8 @@ objeto_de_nombre :: String -> Universo -> Objeto
 objeto_de_nombre n u = foldr1 (\x1 x2 -> if nombre_objeto x1 == n then x1 else x2) (objetos_en u)
 
 es_una_gema :: Objeto -> Bool
-es_una_gema o = isPrefixOf "Gema de" (nombre_objeto o) --}
+es_una_gema o = isPrefixOf "Gema de" (nombre_objeto o) 
+
 
 {-Ejercicio 1-}
 
@@ -119,45 +123,101 @@ foldObjeto f g h (EsDestruido obj) = h (foldObjeto f g h obj)
 
 {-Ejercicio 2-}
 
---hay que definir una aux que lea el constructor Mueve
 posición_personaje :: Personaje -> Posición
-posición_personaje = foldPersonaje (flip (const id)) (aux) id
+posición_personaje = foldPersonaje (flip (const id)) siguiente_posición id
 
 nombre_objeto :: Objeto -> String
 nombre_objeto = foldObjeto (const id) const id
 
 {-Ejercicio 3-}
 
---objetos_en :: ?
---objetos_en = ?
+objetos_en :: Universo -> [Objeto]
+objetos_en u = map objeto_de (filter es_un_objeto u)
 
---personajes_en :: ?
---personajes_en = ?
+personajes_en :: Universo -> [Personaje]
+personajes_en u = map personaje_de (filter es_un_personaje u)
 
 {-Ejercicio 4-}
 
---objetos_en_posesión_de :: ?
---objetos_en_posesión_de = ?
+objetos_en_posesión_de :: String -> Universo -> [Objeto]
+objetos_en_posesión_de s u = filter (en_posesión_de s) (objetos_en u) 
 
 {-Ejercicio 5-}
 
 -- Asume que hay al menos un objeto
---objeto_libre_mas_cercano :: ?
---objeto_libre_mas_cercano = ?
+objeto_libre_mas_cercano :: Personaje -> Universo -> Objeto
+objeto_libre_mas_cercano p u = foldr1 (\x y -> if distancia (Left p) (Right x) < distancia (Left p) (Right y) then x else y) (objetos_libres_en u)
 
 {-Ejercicio 6-}
 
---tiene_thanos_todas_las_gemas :: ?
---tiene_thanos_todas_las_gemas = ?
+tiene_thanos_todas_las_gemas :: Universo -> Bool
+tiene_thanos_todas_las_gemas u = length (filter es_una_gema (objetos_en_posesión_de "Thanos" u)) >= 6 && está_el_personaje "Thanos" u && está_vivo (personaje_de_nombre "Thanos" u)
 
 {-Ejercicio 7-}
 
---podemos_ganarle_a_thanos :: ?
---podemos_ganarle_a_thanos = ?
+podemos_ganarle_a_thanos :: Universo -> Bool
+podemos_ganarle_a_thanos u = not (tiene_thanos_todas_las_gemas u) && ((está_el_personaje "Thor" u && está_vivo (personaje_de_nombre "Thor" u) && está_el_objeto "StormBreaker" u && not (fue_destruido (objeto_de_nombre "StormBreaker" u))) || (está_el_personaje "Wanda" u && está_vivo (personaje_de_nombre "Wanda" u) && está_el_personaje "Visión" u && está_vivo (personaje_de_nombre "Visión" u) && en_posesión_de "Visión" (objeto_de_nombre "Gema de la Mente" u) && not (fue_destruido (objeto_de_nombre "Gema de la Mente" u))))
 
-o1 = Objeto (0,0) "GemaDorada"
-p1 = Personaje (0,0) "Wanda"
-o2 = Tomado o1 p1
-o3 = EsDestruido o2
-p2 = Mueve p1 Este
-p3 = Muere p2
+
+t1 = Personaje (0,0) "Thanos"
+--t2 = Personaje (0,0) "Thanos"  -- PREGUNTAR QUE PASA SI HAY 2 "Thanos".
+p1 = Personaje (0,0) "Visión"
+p2 = Personaje (0,0) "Thor"
+p3 = Personaje (0,0) "Wanda"
+o1 = Objeto (0,0) "Gema de 1"
+o2 = Objeto (0,0) "Gema de 2"
+o3 = Objeto (0,0) "Gema de 3"
+o4 = Objeto (0,0) "Gema de 4"
+o5 = Objeto (0,0) "Gema de 5"
+oM = Objeto (0,0) "Gema de la Mente"
+
+o7 = Objeto (0,0) "StormBreaker"
+
+thormuerto = Muere p2
+
+tom1 = Tomado o1 t1
+tom2 = Tomado o2 t1
+tom3 = Tomado o3 t1
+tom4 = Tomado o4 t1
+tom5 = Tomado o5 t1
+tom6 = Tomado oM t1
+
+tomVision = Tomado oM p1
+
+universoT = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Right tom6]
+universoTPeroconThor = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Right tom6, Left p2, Right o7]
+
+universosinT = [Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Right tom6, Left p2, Right o7]
+
+
+universoTPeroWanda = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Right tom6, Left p1, Right tomVision, Left p3]
+universoTPeroWanda2 = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Left p1, Right oM, Left p3]
+universoTPeroWanda3 = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Left p1, Right tomVision]
+universoTPeroWanda4 = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Left p3, Right tomVision]
+universoTPeroWanda5V = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4, Right tom5, Left p1, Right tomVision, Left p3]
+
+
+universoTfalso = [Left t1, Right tom1, Right tom2, Right tom3, Right tom4]
+
+universoThorGana = [Left p2, Right o7]
+universoThorGanariaPeroMurio = [Left thormuerto, Right o7]
+universoThorWanda = [Left p2, Right o7, Left p1, Right tomVision, Left p3]
+
+obj1 = Objeto (0,0) "Gema del Tiempo"
+obj2 = Objeto (0,0) "Gema del viento"
+
+obj3 = Objeto (0,0) "Gema de 33"
+
+m1 = Tomado obj1 p1
+m2 = Tomado obj2 p1
+pp1 = foldPersonaje Personaje Mueve Muere p1
+
+--o6 = EsDestruido obj3
+
+universo1 :: [Either Personaje Objeto]
+universo1 = [Left pp1, Right m2, Left p2, Right m1, Left p3, Right oM]
+
+
+
+o = Objeto (0,0) "Cuaderno"
+prueba = elem o (objetos_en universo1)

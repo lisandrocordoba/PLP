@@ -150,7 +150,7 @@ objeto_libre_mas_cercano p u = foldr1 (\x y -> if distancia (Left p) (Right x) <
 
 {-Ejercicio 6-}
 {-
-tiene_thanos_todas_las_gemas :: ?
+tiene_thanos_todas_las_gemas :: Universo
 tiene_thanos_todas_las_gemas = ?
 
 {-Ejercicio 7-}
