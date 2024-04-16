@@ -106,27 +106,28 @@ es_una_gema o = isPrefixOf "Gema de" (nombre_objeto o)
 
 {-Ejercicio 1-}
 
-foldPersonaje :: (Posicion -> String -> a) -> (a -> Direccion -> a) -> (a -> a) -> Personaje -> a
+foldPersonaje :: (Posición -> String -> a) -> (a -> Dirección -> a) -> (a -> a) -> Personaje -> a
 foldPersonaje fPersonaje fMueve fMuere personaje = case personaje of 
             Personaje pos nom -> fPersonaje pos nom
             Mueve pers dir -> fMueve (rec pers) dir
-            Muere pers -> fMuere rec pers
-              where rec = foldPersonaje fPersonaje fMueve fMuere pers
+            Muere pers -> fMuere (rec pers)
+            where rec = foldPersonaje fPersonaje fMueve fMuere
 
-foldObjeto :: (Posicion -> String -> a) -> (a -> Personaje) -> (a -> a) -> a
+foldObjeto :: (Posición -> String -> a) -> (a -> Personaje -> a) -> (a -> a) -> Objeto -> a
 foldObjeto fObjeto fTomado fEsDestruido objeto = case objeto of
             Objeto pos nom -> fObjeto pos nom
             Tomado obj pers -> fTomado (rec obj) pers
-            EsDestruido obj -> fEsDestruido rec obj
-              where rec = foldObjeto fObjeto fTomado fEsDestruido
+            EsDestruido obj -> fEsDestruido (rec obj)
+            where rec = foldObjeto fObjeto fTomado fEsDestruido
 
 {-Ejercicio 2-}
 
-posición_personaje :: Personaje -> Posicion
-posición_personaje = foldPersonaje (flip (const id)) (\pos dir -> siguiente_posicion pos dir) id
+posición_personaje :: Personaje -> Posición
+posición_personaje = foldPersonaje (flip (const id)) (\pos dir -> siguiente_posición pos dir) id
 
-nombre_objeto :: Objeto -> Posicion
+nombre_objeto :: Objeto -> Posición
 nombre_objeto = foldObjeto (const id) const id
+
 
 {-Ejercicio 3-}
 
@@ -139,16 +140,16 @@ personajes_en u = map personaje_de (filter es_un_personaje u)
 {-Ejercicio 4-}
 
 objetos_en_posesión_de :: String -> Universo -> [Objeto]
-objetos_en_posesión_de nom u = filter (en_posesion_de (personaje_de_nombre nom u))
+objetos_en_posesión_de s u = filter (en_posesión_de s) (objetos_en u)
 
 {-Ejercicio 5-}
 
 -- Asume que hay al menos un objeto
-objeto_libre_mas_cercano :: ?
-objeto_libre_mas_cercano = ?
+objeto_libre_mas_cercano :: Personaje -> Universo -> Objeto
+objeto_libre_mas_cercano p u = foldr1 (\x y -> if distancia (Left p) (Right x) < distancia (Left p) (Right y) then x else y) (objetos_en u)
 
 {-Ejercicio 6-}
-
+{-
 tiene_thanos_todas_las_gemas :: ?
 tiene_thanos_todas_las_gemas = ?
 
@@ -156,9 +157,9 @@ tiene_thanos_todas_las_gemas = ?
 
 podemos_ganarle_a_thanos :: ?
 podemos_ganarle_a_thanos = ?
-
+-}
 {-Tests-}
-
+{-
 main :: IO Counts
 main = do runTestTT allTests
 
@@ -213,3 +214,13 @@ testsEj7 = test [ -- Casos de test para el ejercicio 7
   podemos_ganarle_a_thanos universo_sin_thanos         -- Caso de test 1 - expresión a testear
     ~=? False                                          -- Caso de test 1 - resultado esperado
   ]
+-}
+p1 = Personaje (0.0, 0.0) "Iron Man"
+p2 = Personaje (15, 27) "Thor"
+p3 = Personaje (-4, -2) "Hulk"
+p4 = Personaje (1.5, -20) "Thanos"
+o1 = Objeto (0, 0) "Gema del Tiempo"
+o2 = Objeto (4, 4) "Gema del Alma"
+o3 = Objeto (-4, -3) "Nimbus 2000"
+
+u1 = [Left p1, Left p2, Left p3, Left p4, Right o1, Right o2, Right o3]
