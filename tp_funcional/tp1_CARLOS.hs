@@ -1,5 +1,3 @@
-{-- Tipos --}
-
 import Data.Either ()
 import Data.List ()
 

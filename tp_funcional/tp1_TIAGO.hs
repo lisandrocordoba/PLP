@@ -4,7 +4,6 @@
 
 import Data.Either
 import Data.List
-import Text.XHtml (h1)
 
 data Dirección = Norte | Sur | Este | Oeste
   deriving (Eq, Show)
@@ -130,6 +129,80 @@ nombre_objeto :: Objeto -> String
 nombre_objeto = foldObjeto (const id) const id
 
 {-Ejercicio 3-}
+{-
+(NOTAR: para mayor comodidad reemplazamos el tipo u del enunciado por el tipo us)
+Probar la sgte propiedad: 
+∀us::Universo . ∀o::Objeto . elem o (objetos_en us) ⇒ elem (Right o) us
+--
+Lo probaremos por induccion estructural sobre Universos
+Como Universo = [Either Personaje Objeto], tiene dos constructores
+Constructor base -> [] 
+Constructor recursivo -> (u:us), con u::Either Personaje Objeto y us::[u]
+
+Qpq ∀us::Universo. P(us)
+Con P(us) = ∀o::Objeto . elem o (objetos_en us) ⇒ elem (Right o) us
+
+CASO BASE: P([])
+  P([]) = ∀o::Objeto . elem o (objetos_en []) ⇒ elem (Right o) []
+  = ∀o::Objeto . elem o (map objeto_de (filter es_un_objeto [])) ⇒ elem (Right o) [] ---- Por definición de objetos_de
+  = ∀o::Objeto . elem o (map objeto_de []) ⇒ elem (Right o) [] ---- Por definición de filter
+  = ∀o::Objeto . elem o [] ⇒ elem (Right o) [] ---- Por definición de map
+  = ∀o::Objeto . False ⇒ elem (Right o) [] ---- Por definición de elem
+  = True ---- trivialmente
+
+  Asi, vale el caso base P([])
+
+CASO INDUCTIVO: ∀us::[u]. P(us) => ∀u::Either Personaje Objeto. P(u:us)
+  HI: P(us) = ∀o::Objeto . elem o (objetos_en us) ⇒ elem (Right o) us
+  TI: P(u:us) = ∀o::Objeto . elem o (objetos_en (u:us)) ⇒ elem (Right o) (u:us)
+
+  Qvq vale P(u:us)
+  Si el antecedente no vale, la implicación vale trivialmente
+
+  Si el antecedente vale, qvq elem (Right o) (u:us)
+    Lo probamos:
+    elem (Right o) (u:us)
+    = (Right o) == u || elem (Right o) us ---- Por definición de elem
+
+    Separo en 2 casos
+    CASO (Right o) == u 
+      TRUE || elem (Right o) us
+      = TRUE ---- vale trivialmente
+
+    CASO (Right o) != u
+      FALSE || elem (Right o) us
+      = elem (Right o) us
+
+      Sabemos que
+      elem o (objetos_en us) ⇒ elem (Right o) us ---- Por HI
+
+      Y tambien sabemos que
+      elem o (objetos_en (u:us)) ---- Asumido en este caso
+
+      Luego, por transitividad, basta probar que
+      elem o (objetos_en (u:us)) => elem o (objetos_en us)
+
+      Vemos que el antecedente es equiv a
+      elem o (map objeto_de (filter es_un_objeto (u:us))) -- Por definición de objetos_en
+
+      Separamos en 2 casos
+        Si (es_un_objeto u)
+          Podemos interpretar u como Right u'
+          Como sabemos que Right o != Right u' ---- Pues estamos en el caso (Right o) != u
+          Vale o != u'
+
+        Si not(es_un_objeto u)
+          Sabemos que u no pertenecerá a objetos_en --- Por definición objetos_en
+
+      En ambos casos, concluimos que el antecedente elem o (objetos_en (u:us))
+      se puede expresar como elem o (objetos_en us)
+
+      Luego, 
+      qvq elem o (objetos_en us) => elem o (objetos_en us)
+      Vale trivialmente
+
+  Así, ∀us::[u]. P(us) => ∀u::Either Personaje Objeto. P(u:us)
+-}
 
 objetos_en :: Universo -> [Objeto]
 objetos_en u = map objeto_de (filter es_un_objeto u)
@@ -139,13 +212,14 @@ personajes_en u = map personaje_de (filter es_un_personaje u)
 
 {-Ejercicio 4-}
 
-objetos_en_posesión_de :: String -> Universo -> [Objeto]
-objetos_en_posesión_de s u = filter (en_posesión_de s) (objetos_en u) 
+objetos_en_posesión_de :: String -> Universo -> [Objeto] ------ !!!! Chequear q si el personaje esta muerto debe retornar []
+objetos_en_posesión_de s u = filter (en_posesión_de s) (objetos_en u)
+
 
 {-Ejercicio 5-}
 
 -- Asume que hay al menos un objeto
-objeto_libre_mas_cercano :: Personaje -> Universo -> Objeto
+objeto_libre_mas_cercano :: Personaje -> Universo -> Objeto ---- !!!! Chequear los q quedaron libres porq murio su personaje
 objeto_libre_mas_cercano p u = foldr1 (\x y -> if distancia (Left p) (Right x) < distancia (Left p) (Right y) then x else y) (objetos_libres_en u)
 
 {-Ejercicio 6-}
@@ -155,7 +229,7 @@ tiene_thanos_todas_las_gemas u = length (filter es_una_gema (objetos_en_posesió
 
 {-Ejercicio 7-}
 
-podemos_ganarle_a_thanos :: Universo -> Bool
+podemos_ganarle_a_thanos :: Universo -> Bool -- VOLVER A VER Q CONDICIONES NECESITO
 podemos_ganarle_a_thanos u = not (tiene_thanos_todas_las_gemas u) && ((está_el_personaje "Thor" u && está_vivo (personaje_de_nombre "Thor" u) && está_el_objeto "StormBreaker" u && not (fue_destruido (objeto_de_nombre "StormBreaker" u))) || (está_el_personaje "Wanda" u && está_vivo (personaje_de_nombre "Wanda" u) && está_el_personaje "Visión" u && está_vivo (personaje_de_nombre "Visión" u) && en_posesión_de "Visión" (objeto_de_nombre "Gema de la Mente" u) && not (fue_destruido (objeto_de_nombre "Gema de la Mente" u))))
 
 
