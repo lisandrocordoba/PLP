@@ -1,6 +1,12 @@
 import Prelude hiding (subtract)
+import GHC.Num.BigNat (bigNatAdd)
+import Control.Arrow (ArrowZero(zeroArrow))
+import Foreign (Bits(zeroBits))
 ---------------------------------------------------
 ----------------- FALTA EL 7) ---------------------
+----------------- FALTA EL 9) ---------------------
+----------------- FALTA EL ) ---------------------
+
 ---------------------------------------------------
 
 -- Ejercicio 1
@@ -208,3 +214,125 @@ mapPares :: (a -> b -> c) -> [(a, b)] -> [c]
 mapPares f = map (Main.uncurry f)
 
 ---- II)
+armarPares :: [a] -> [b] -> [(a, b)]
+armarPares = foldr (\x rec ys -> 
+                        if null ys then []
+                        else (x, head ys) : rec (tail ys)
+                   ) (const [])
+
+---- III)
+mapDoble :: (a -> b -> c) -> [a] -> [b] -> [c]
+mapDoble f = foldr (\x rec ys -> 
+                    if null ys then []
+                    else f x (head ys) : rec (tail ys)
+             ) (const [])
+
+-- Ejercicio 10
+generate :: ([a] -> Bool) -> ([a] -> a) -> [a]
+generate stop next = generateFrom stop next []
+
+generateFrom :: ([a] -> Bool) -> ([a] -> a) -> [a] -> [a]
+generateFrom stop next xs
+    | stop xs = init xs
+    | otherwise = generateFrom stop next (xs ++ [next xs])
+
+---- I)
+generateBase :: ([a] -> Bool) -> a -> (a -> a) -> [a]
+generateBase stop base next = generate stop (\xs -> if null xs then base else next (last xs))
+
+---- II)
+factoriales :: Int -> [Int]
+factoriales n = generate (\xs -> length xs > n) (\xs-> if null xs then 1 else last xs * (length xs + 1))
+
+---- III)
+iterateN :: Int -> (a -> a) -> a -> [a]
+iterateN n f x = generateBase (\xs -> length xs > n) x f
+
+---- IV)
+generateFrom' :: ([a] -> Bool) -> ([a] -> a) -> [a] -> [a]
+generateFrom' stop next xs = last (takeWhile (not . stop) (iterate (\ys -> ys ++ [next ys]) xs))
+
+-- Ejercicio 11
+---- I)
+foldNat :: (Integer -> b -> b) -> b -> Integer -> b
+foldNat f z 0 = z
+foldNat f z n = f n (foldNat f z (n-1))
+
+---- II)
+potencia :: Integer -> Integer
+potencia n = foldNat (\_ rec -> n * rec) 1 n
+
+-- Ejercicio 12
+data Polinomio a = X
+                | Cte a
+                | Suma (Polinomio a) (Polinomio a)
+                | Prod (Polinomio a) (Polinomio a)
+
+foldPoli :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Polinomio a -> b
+foldPoli fX fCte fSuma fProd p = case p of
+    X -> fX
+    Cte c -> fCte c
+    Suma p q -> fSuma (rec p) (rec q)
+    Prod p q -> fProd (rec p) (rec q)
+    where rec = foldPoli fX fCte fSuma fProd
+
+evaluar :: Num a => a -> Polinomio a -> a
+evaluar n = foldPoli n id (+) (*)
+
+-- Ejercicio 13
+data AB a = Nil | Bin (AB a) a (AB a)
+
+---- I)
+foldAB :: b -> (b -> a -> b -> b) -> AB a -> b
+foldAB z fBin ab = case ab of
+    Nil -> z
+    Bin l n r -> fBin (rec l) n (rec r)
+    where rec = foldAB z fBin
+
+recAB :: b -> (AB a -> a -> AB a -> b -> b -> b) -> AB a -> b
+recAB z fBin ab = case ab of
+    Nil -> z
+    Bin l n r -> fBin l n r (rec l) (rec r)
+    where rec = recAB z fBin
+
+---- II)
+esNil :: AB a -> Bool
+esNil ab = case ab of
+    Nil -> True
+    Bin _ _ _ -> False
+
+altura :: AB a -> Int
+altura = foldAB 0 (\recL _ recR -> 1 + max recL recR) 
+
+cantNodos :: AB a -> Int
+cantNodos = foldAB 0 (\recL _ recR -> 1 + recL + recR)
+
+--- III)
+mejorSegunAB :: (a -> a -> Bool) -> AB a -> a
+mejorSegunAB comp (Bin l n r) = foldAB n (\recL n recR -> f recL (f n recR)) (Bin l n r)
+    where f x y = if comp x y then x else y
+
+--- IV) NO SE SI ESTA BIEN
+
+-- No hago el caso con el constructor Nil, pues no sabria que devolver
+-- Notar que no se rompe pues esABB abarca el caso base Nil devolviendo True
+valorNodo :: AB a -> a
+valorNodo (Bin l n r) = n 
+
+esABB :: Ord a => AB a -> Bool
+esABB = recAB True (\l n r recL recR -> n >= valorNodo l && n < valorNodo r)
+
+-- Ejercicio 14
+--- I)
+ramas :: AB a -> [[a]]
+ramas = foldAB [] f
+    where f recL n recR | null recL && null recR = [[n]]
+                        | null recR = map (n:) recL
+                        | null recL = map (n:) recR
+                        | otherwise = map (n:) recL ++ map (n:) recR
+
+cantHojas :: AB a -> Int
+cantHojas = foldAB 0 (\recL n recR -> if recL == 0 && recR == 0 then 1 else 0 + recL + recR)
+
+espejo :: AB a -> AB a
+espejo = foldAB Nil (\recL n recR -> Bin recR n recL)
