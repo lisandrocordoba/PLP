@@ -1,0 +1,6 @@
+¬madre(X, Y), descendiente(Y, X)
+¬descendiente(X , Y), ¬descendiente(Y, Z), descendiente(X, Z)
+¬abuela(X , Y ), madre(X, medio(X, Y))
+¬abuela(X , Y), madre(medio(X, Y), Y)
+abuela(a, b)
+¬descendiente(b, a)

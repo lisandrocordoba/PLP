@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Resolviendo problemas con Resoluci&oacute;n</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="res.js"></script>
+<script type="text/javascript" src="jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="resUI.js"></script>
+    <style type="text/css" media="all">@import "resUI.css";</style>
+</head>
+<body>
+<p>Eleg&iacute; un archivo con cl&aacute;usulas para empezar:</p>
+<input type="file" id="file" name="file" accept="text/plain"/>
+<output id="fileData"></output>
+<p>Luego hac&eacute; clic en las cl&aacute;usulas para seleccionarlas, y eleg&iacute; el o los literales a unificar para cada cl&aacute;usula.</p>
+<div id="list"></div>
+<div class="right"><span id="claus1">&nbsp;</span> <span id="claus2">&nbsp;</span><hr><span id="resolvente">&nbsp;</span><br>
+<input type="button" name="calcular" id="calcular" onclick="calcularResolvente()" value="Calcular resolvente" disabled="disabled"/>&nbsp;
+<input type="button" name="agregar" id="agregar" onclick="agregarResolvente()" value="Agregar a la lista" disabled="disabled"/>
+</div>
+<script>
+  function handleFileContent(e){
+    return e.target.result;
+  }
+
+  function handleFileSelect(evt) {
+    var f = evt.target.files[0]; // File object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                  f.size, ' bytes, modificado: ',
+                  f.lastModified ? new Date(f.lastModified) : 'n/a',
+                  '</li>');
+                  var text = "";
+                  var reader = new FileReader();
+                  reader.onload = function(e) {text = showFileContents(handleFileContent(e)); document.getElementById('list').innerHTML = text;};
+		  reader.readAsText(f);
+		  document.getElementById('fileData').innerHTML = '<ul>' + output.join('')+'</ul>';
+  }
+
+  document.getElementById('file').addEventListener('change', handleFileSelect, false);
+</script>
+
+
+</body>
+</html>

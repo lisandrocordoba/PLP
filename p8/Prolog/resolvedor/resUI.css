@@ -1,0 +1,47 @@
+.right {
+  float: right;
+  text-align: center;
+}
+#list {
+  float: left;
+  display:inline;
+}
+
+a {
+  text-decoration: none;
+}
+
+#list a {
+  color: black;
+}
+
+#list a:hover {
+  color: silver;
+  cursor:pointer;
+}
+
+.plain {
+  color: black;
+}
+
+.plain:hover {
+  color: gold;
+  cursor:pointer;
+}
+
+.selected {
+  color: royalblue;
+}
+
+.selected:hover {
+  color: cyan;
+  cursor:pointer;
+}
+
+.error {
+  color: red;
+}
+
+.renombre {
+  font-size: 13px;
+}
